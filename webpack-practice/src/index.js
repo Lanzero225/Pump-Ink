@@ -1,6 +1,6 @@
 import "./styles.css";
-import { menu, buildMenu } from "./menu.js";
-import odinImage from "./odin.png";
+import { buildCatalog  } from "./catalog.js";
+import { buildOrder, saveOrder, orderDictionary } from "./order.js";
 
    
 
@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.getElementById("home-button").onclick = loadHome;
-document.getElementById("menu-button").onclick = loadMenu;
-document.getElementById("contact-button").onclick = loadContact;
+document.getElementById("catalog-button").onclick = loadCatalog;
+document.getElementById("order-button").onclick = loadOrder;
 
 function clearContent(){
     const mainDiv = document.getElementById("content");
@@ -19,17 +19,21 @@ function clearContent(){
 
 function loadHome(){
     clearContent();
+    
 }
 
 
-function loadMenu(){
+function loadCatalog(){
     clearContent();
     const mainDiv = document.getElementById("content");
-    buildMenu(mainDiv);
+    buildCatalog(mainDiv);
 }
 
 
 
-function loadContact(){
+function loadOrder(){
     clearContent();
+    const mainDiv = document.getElementById("content");
+    buildOrder(mainDiv);
+ 
 }
