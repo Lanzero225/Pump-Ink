@@ -6,12 +6,19 @@ export const orderDictionary = {
       'magnet':0
     };
 
+const savedOrder = localStorage.getItem('orderDictionary');
+if (savedOrder) {
+  Object.assign(orderDictionary, JSON.parse(savedOrder));
+}
 
+function saveOrder() {
+  localStorage.setItem(
+    'orderDictionary',
+    JSON.stringify(orderDictionary)
+  );
+}
 export function buildOrder(mainDiv) {
-    const savedOrder = localStorage.getItem('orderDictionary');
-    if (savedOrder) {
-        Object.assign(orderDictionary, JSON.parse(savedOrder));
-    }
+
 
   const orderContainer = document.createElement('div');
   const orderCountDiv = document.createElement('div');
@@ -20,13 +27,11 @@ export function buildOrder(mainDiv) {
   const countElements = {};
 
   buttons.forEach(button => {
-    // Button
     const newButton = document.createElement('button');
     newButton.id = button;
     newButton.textContent = button;
     orderContainer.append(newButton);
 
-    // Count text
     const countText = document.createElement('p');
     countText.textContent = orderDictionary[button];
     orderCountDiv.append(countText);
@@ -38,10 +43,75 @@ export function buildOrder(mainDiv) {
       countElements[button].textContent = orderDictionary[button];
       saveOrder();
     });
+    
   });
 
-  mainDiv.append(orderContainer, orderCountDiv);
+  const exportBtn = document.createElement('button');
+  exportBtn.textContent = 'Export Order';
+  exportBtn.onclick = exportOrder;
+  const importInput = document.createElement('input');
+  importInput.type = 'file';
+  importInput.accept = '.json';
+  importInput.onchange = importOrder;
+
+
+
+
+
+
+function exportOrder() {
+  const dataStr = JSON.stringify(orderDictionary, null, 2); // pretty print
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'order.json'; // file name
+  a.click();
+
+  URL.revokeObjectURL(url);
 }
-export function saveOrder() {
-  localStorage.setItem('orderDictionary', JSON.stringify(orderDictionary));
+
+function importOrder(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      Object.assign(orderDictionary, importedData);
+      console.log("Imported:", importedData);
+
+      // Update the counts in the UI
+      Object.keys(importedData).forEach(button => {
+        if (countElements[button]) {
+          countElements[button].textContent = orderDictionary[button];
+        }
+      });
+
+      // Save to localStorage as well
+      localStorage.setItem('orderDictionary', JSON.stringify(orderDictionary));
+    } catch (err) {
+      console.error('Error importing file:', err); // <-- log actual error
+      alert('Invalid JSON file!');
+    }
+  };
+  reader.readAsText(file);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+  mainDiv.append(orderContainer, orderCountDiv, exportBtn, importInput);
+}
+
+
