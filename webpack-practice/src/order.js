@@ -2,23 +2,22 @@ import { productList } from "./catalog";
 
 export const orderDictionary = {};
 
-// initialize dictionary
 productList.forEach(product => {
   orderDictionary[product.name] = 0;
 });
 
-// load saved order
-const savedOrder = localStorage.getItem("orderDictionary");
+let orderData = [];
+const savedOrder = localStorage.getItem("orderData");
+
 if (savedOrder) {
-  Object.assign(orderDictionary, JSON.parse(savedOrder));
+  orderData = JSON.parse(savedOrder);
 }
 
 function saveOrder() {
-  localStorage.setItem(
-    "orderDictionary",
-    JSON.stringify(orderDictionary)
-  );
+  localStorage.setItem("orderData", JSON.stringify(orderData));
 }
+
+
 
 export function buildOrder(mainDiv) {
   mainDiv.classList.add("order-app");
@@ -31,133 +30,187 @@ export function buildOrder(mainDiv) {
 
   const countElements = {};
   const itemTotalElements = {};
+  const buttons = [];
 
-  function updateGrandTotal() {
+  function calculateTotal() {
     let total = 0;
     productList.forEach(product => {
       total += orderDictionary[product.name] * product.price;
     });
-    totalDiv.textContent = `Total: ₱${total}`;
+    return total;
   }
 
-productList.forEach(product => {
-  const row = document.createElement("div");
-  row.classList.add("order-row");
+  function updateGrandTotal() {
+    totalDiv.textContent = `Total: ₱${calculateTotal()}`;
+  }
 
-  const name = document.createElement("span");
-  name.classList.add("product-name");
-  name.textContent = product.name;
+  productList.forEach(product => {
+    const row = document.createElement("div");
+    row.classList.add("order-row");
 
-  const price = document.createElement("span");
-  price.textContent = `₱${product.price}`;
+    const name = document.createElement("span");
+    name.classList.add("product-name");
+    name.textContent = product.name;
 
-  const qty = document.createElement("span");
-  qty.textContent = orderDictionary[product.name];
-  countElements[product.name] = qty;
+    const price = document.createElement("span");
+    price.textContent = `₱${product.price}`;
 
-  const itemTotal = document.createElement("span");
-  itemTotal.textContent =
-    `₱${orderDictionary[product.name] * product.price}`;
-  itemTotalElements[product.name] = itemTotal;
+    const qty = document.createElement("span");
+    qty.textContent = orderDictionary[product.name];
+    countElements[product.name] = qty;
 
-  // ➖ minus button
-  const minusBtn = document.createElement("button");
-  minusBtn.textContent = "−";
-  minusBtn.classList.add("qty-btn");
+    const itemTotal = document.createElement("span");
+    itemTotal.textContent =
+      `₱${orderDictionary[product.name] * product.price}`;
+    itemTotalElements[product.name] = itemTotal;
 
-  minusBtn.onclick = () => {
-    if (orderDictionary[product.name] > 0) {
-      orderDictionary[product.name]--;
+    const minusBtn = document.createElement("button");
+    minusBtn.textContent = "−";
+    minusBtn.classList.add("qty-btn");
+
+    minusBtn.onclick = () => {
+      if (orderDictionary[product.name] > 0) {
+        orderDictionary[product.name]--;
+        refreshRow(product);
+      }
+    };
+
+    const addBtn = document.createElement("button");
+    addBtn.textContent = "+";
+    addBtn.classList.add("qty-btn");
+
+    addBtn.onclick = () => {
+      orderDictionary[product.name]++;
+      refreshRow(product);
+    };
+
+    buttons.push(minusBtn, addBtn);
+
+    function refreshRow(product) {
       qty.textContent = orderDictionary[product.name];
       itemTotal.textContent =
         `₱${orderDictionary[product.name] * product.price}`;
       updateGrandTotal();
-      saveOrder();
     }
-  };
 
-  // ➕ plus button
-  const addBtn = document.createElement("button");
-  addBtn.textContent = "+";
-  addBtn.classList.add("qty-btn");
+    row.append(name, price, minusBtn, qty, addBtn, itemTotal);
+    orderContainer.append(row);
 
-  addBtn.onclick = () => {
-    orderDictionary[product.name]++;
-    qty.textContent = orderDictionary[product.name];
-    itemTotal.textContent =
-      `₱${orderDictionary[product.name] * product.price}`;
-    updateGrandTotal();
-    saveOrder();
-  };
-
-  row.append(name, price, minusBtn, qty, addBtn, itemTotal);
-  orderContainer.append(row);
-});
-
+  });
 
   updateGrandTotal();
 
-  // Export
+  // CONFIRM ORDER BUTTON
+  const confirmBtn = document.createElement("button");
+  confirmBtn.textContent = "Confirm Order";
+  confirmBtn.classList.add("confirm-btn");
+
+  confirmBtn.onclick = () => {
+    const totalAmount = calculateTotal();
+
+    if (totalAmount === 0) {
+      alert("Cannot confirm an empty order.");
+      return;
+    }
+
+    orderData.push({
+      customer: {
+        date: new Date().toLocaleString(),
+        time: new Date().getTime()
+      },
+      items: { ...orderDictionary },
+      total: totalAmount
+    });
+
+    saveOrder();
+
+    alert("Order successfully confirmed!");
+
+    Object.keys(orderDictionary).forEach(key => {
+      orderDictionary[key] = 0;
+    });
+
+    productList.forEach(product => {
+      countElements[product.name].textContent = 0;
+      itemTotalElements[product.name].textContent = "₱0";
+    });
+
+    updateGrandTotal();
+  };
+
+
+  // ADJUSTED EXPORT
   const exportBtn = document.createElement("button");
   exportBtn.textContent = "Export Order";
   exportBtn.classList.add("action-btn");
-  exportBtn.onclick = exportOrder;
 
-  // Import
+  exportBtn.onclick = () => {
+    if (orderData.length === 0) {
+      alert("No orders to export.");
+      return;
+    }
+
+    const blob = new Blob(
+      [JSON.stringify(orderData, null, 2)],
+      { type: "application/json" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "all-orders.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ADJUSTED IMPORT
   const importInput = document.createElement("input");
   importInput.type = "file";
   importInput.accept = ".json";
-  importInput.classList.add("action-btn");
   importInput.style.display = "none";
-    importInput.onchange = importOrder;
+
   const importBtn = document.createElement("button");
   importBtn.textContent = "Import Order";
   importBtn.classList.add("action-btn");
 
   importBtn.onclick = () => importInput.click();
 
-  function exportOrder() {
-    const dataStr = JSON.stringify(orderDictionary, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "order.json";
-    a.click();
-
-    URL.revokeObjectURL(url);
-  }
-
-  function importOrder(event) {
-    const fileInput = event.target;
-    const file = fileInput.files[0];
+  importInput.onchange = (event) => {
+    const file = event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = e => {
       try {
-        const importedData = JSON.parse(e.target.result);
-        Object.assign(orderDictionary, importedData);
+        const importedOrders = JSON.parse(e.target.result);
 
-        productList.forEach(product => {
-          countElements[product.name].textContent =
-            orderDictionary[product.name] || 0;
-          itemTotalElements[product.name].textContent =
-            `₱${(orderDictionary[product.name] || 0) * product.price}`;
-        });
+        if (!Array.isArray(importedOrders)) {
+          alert("Invalid file format.");
+          return;
+        }
 
-        updateGrandTotal();
+        orderData = importedOrders;
         saveOrder();
-        fileInput.value = "";
 
-      } catch (err) {
-        alert("Invalid JSON file!");
-        fileInput.value = "";
+        alert("Orders imported successfully!");
+
+      } catch {
+        alert("Invalid JSON file.");
       }
-    };
-    reader.readAsText(file);
-  }
 
-  mainDiv.append(orderContainer, totalDiv, exportBtn, importBtn);
+      importInput.value = "";
+    };
+
+    reader.readAsText(file);
+  };
+
+
+  mainDiv.append(
+    orderContainer,
+    totalDiv,
+    confirmBtn,
+    exportBtn,
+    importBtn,
+    importInput
+  );
 }

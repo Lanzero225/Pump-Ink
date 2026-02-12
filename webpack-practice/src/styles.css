@@ -107,3 +107,100 @@ body {
 input[type="file"] {
   margin-top: 12px;
 }
+
+/*
+
+
+
+*/
+
+.history-app {
+  font-family: sans-serif;
+  padding: 30px;
+  background: #f4f6f9;
+  min-height: 100vh;
+}
+
+.history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.history-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.history-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.history-card ul {
+  padding-left: 20px;
+  margin-bottom: 10px;
+}
+
+.history-total {
+  font-weight: bold;
+  color: #2a7;
+}
+
+
+/* NAVBAR */
+.navbar {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  padding: 15px 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.nav-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* LOGO */
+.logo {
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* BUTTON GROUP */
+.nav-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+/* NAV BUTTON */
+.nav-button {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* Hover */
+.nav-button:hover {
+  background: white;
+  color: #4f46e5;
+  transform: translateY(-2px);
+}
+
+/* Active State */
+.nav-button.active {
+  background: white;
+  color: #4f46e5;
+  font-weight: 600;
+}
