@@ -14,7 +14,7 @@ export const productList = [
     new Product("swipies", 130),
     new Product("mirror-keychain", 85),
     new Product("pocket-mirror", 75),
-    new Product("button-pin-25", 40),
+    new Product("button-pin-25", 30),
     new Product("button-pin-35", 40),
     new Product("button-pin-58", 50),
     new Product("locket-charm", 150),
